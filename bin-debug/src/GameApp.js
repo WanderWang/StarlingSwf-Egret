@@ -30,13 +30,13 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-///<reference path="egret.d.ts"/>
-///<reference path="LoadingUI.ts"/>
-///<reference path="starlingswf.d.ts"/>
 var GameApp = (function (_super) {
     __extends(GameApp, _super);
     function GameApp() {
         _super.call(this);
+
+        egret.Injector.mapClass(RES.AnalyzerBase, starlingswf.StarlingSwfSheetAnalyzer, "starlingswf_sheet");
+
         this.addEventListener(egret.Event.ADDED_TO_STAGE, this.onAddToStage, this);
     }
     GameApp.prototype.onAddToStage = function (event) {
@@ -46,7 +46,7 @@ var GameApp = (function (_super) {
 
         //初始化Resource资源加载库
         RES.addEventListener(RES.ResourceEvent.CONFIG_COMPLETE, this.onConfigComp, this);
-        RES.loadConfig("resources/resource.json", "resources/");
+        RES.loadConfig("resource/resource.json", "resource/");
     };
 
     /**
@@ -92,7 +92,11 @@ var GameApp = (function (_super) {
 
         this.swf = new starlingswf.Swf(swfData, assetsManager, 60);
 
-        this.test3();
+        //        this.test1();
+        //        this.test2();
+        //        this.test3();
+        //        this.test4();
+        this.test5();
 
         egret.Profiler.getInstance().run();
     };
@@ -134,5 +138,32 @@ var GameApp = (function (_super) {
     GameApp.prototype.mcComplete = function (e) {
         console.log("mcComplete");
     };
+
+    /**
+    * 帧事件测试
+    * */
+    GameApp.prototype.test4 = function () {
+        var mc = this.swf.createMovie("mc_frame_event");
+        mc.addEventListener("@out", this.frameEventOut, mc);
+        mc.addEventListener("@in", this.frameEventIn, mc);
+        this.addChild(mc);
+    };
+
+    GameApp.prototype.frameEventOut = function (e) {
+        console.log("@out");
+    };
+
+    GameApp.prototype.frameEventIn = function (e) {
+        console.log("@in");
+    };
+
+    /**
+    * blendMode
+    * */
+    GameApp.prototype.test5 = function () {
+        var spr = this.swf.createSprite("spr_blendmode");
+        this.addChild(spr);
+    };
     return GameApp;
 })(egret.DisplayObjectContainer);
+GameApp.prototype.__class__ = "GameApp";

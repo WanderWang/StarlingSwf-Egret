@@ -11,7 +11,8 @@ var starlingswf;
 (function (starlingswf) {
     var SwfMovieClip = (function (_super) {
         __extends(SwfMovieClip, _super);
-        function SwfMovieClip(frames, labels, displayObjects, ownerSwf) {
+        function SwfMovieClip(frames, labels, displayObjects, ownerSwf, frameEvents) {
+            if (typeof frameEvents === "undefined") { frameEvents = null; }
             _super.call(this);
             this._isPlay = false;
             this.loop = true;
@@ -21,6 +22,7 @@ var starlingswf;
             this._frames = frames;
             this._labels = labels;
             this._displayObjects = displayObjects;
+            this._frameEvents = frameEvents;
 
             this._startFrame = 0;
             this._endFrame = this._frames.length - 1;
@@ -58,7 +60,8 @@ var starlingswf;
         };
 
         SwfMovieClip.prototype.setCurrentFrame = function (frame) {
-            this.removeChildren();
+            //dirty hack this.removeChildren();
+            this._children.length = 0;
 
             this._currentFrame = frame;
             this.__frameInfos = this._frames[this._currentFrame];
@@ -73,27 +76,29 @@ var starlingswf;
                 useIndex = data[10];
                 display = this._displayObjects[data[0]][useIndex];
 
-                display.skewX = data[6];
-                display.skewY = data[7];
-                display.alpha = data[8];
+                display._skewX = data[6];
+                display._skewY = data[7];
+                display._alpha = data[8];
                 display.name = data[9];
 
                 //                if(data[1] == Swf.dataKey_Particle){
                 //                    display["setPostion"](data[2],data[3]);
                 //                }else{
-                display.x = data[2];
-                display.y = data[3];
+                display._x = data[2];
+                display._y = data[3];
 
                 //                }
                 if (data[1] == starlingswf.Swf.dataKey_Scale9) {
                     display.width = data[11];
                     display.height = data[12];
                 } else {
-                    display.scaleX = data[4];
-                    display.scaleY = data[5];
+                    display._scaleX = data[4];
+                    display._scaleY = data[5];
                 }
 
-                this.addChild(display);
+                //dirty hack  this.addChild(display);
+                this._children.push(display);
+                display._parent = this;
 
                 if (data[1] == starlingswf.Swf.dataKey_TextField) {
                     textfield = display;
@@ -110,6 +115,10 @@ var starlingswf;
                         textfield.text = data[19];
                     }
                 }
+            }
+
+            if (this._frameEvents != null && this._frameEvents[this._currentFrame] != null) {
+                this.dispatchEventWith(this._frameEvents[this._currentFrame]);
             }
         };
 
@@ -257,4 +266,5 @@ var starlingswf;
         return SwfMovieClip;
     })(starlingswf.SwfSprite);
     starlingswf.SwfMovieClip = SwfMovieClip;
+    SwfMovieClip.prototype.__class__ = "starlingswf.SwfMovieClip";
 })(starlingswf || (starlingswf = {}));
